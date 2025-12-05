@@ -2,7 +2,7 @@ FROM node:18 AS builder
 
 WORKDIR /app
 COPY package.json ./
-COPY package-lock.json . 2>/dev/null || true
+# COPY package-lock.json . 2>/dev/null || true
 
 RUN npm install
 COPY . .
