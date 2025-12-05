@@ -16,41 +16,37 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Test Step
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
         run: |
-          whoami
+          IMAGE=ghcr.io/${{ github.actor }}/react-sample-app:${{ github.sha }}
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+          docker build -t $IMAGE .
 
-    #   - name: Login to GHCR
-    #     uses: docker/login-action@v3
-    #     with:
-    #       registry: ghcr.io
-    #       username: ${{ github.actor }}
-    #       password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push Docker image
+        run: |
+          docker push $IMAGE
 
-    #   - name: Build Docker image
+      - name: Replace image in deployment.yaml
+        run: |
+          sed -i "s|image: .*|image: ${IMAGE}|g" k8s/deployment.yaml
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+    #   - name: Set kubeconfig
     #     run: |
-    #       IMAGE=ghcr.io/${{ github.actor }}/react-sample-app:${{ github.sha }}
-    #       echo "IMAGE=$IMAGE" >> $GITHUB_ENV
-    #       docker build -t $IMAGE .
+    #       echo "${{ secrets.KUBECONFIG_DATA }}" > kubeconfig
+    #     shell: bash
 
-    #   - name: Push Docker image
-    #     run: |
-    #       docker push $IMAGE
-
-    #   - name: Replace image in deployment.yaml
-    #     run: |
-    #       sed -i "s|image: .*|image: ${IMAGE}|g" k8s/deployment.yaml
-
-    #   - name: Setup kubectl
-    #     uses: azure/setup-kubectl@v3
-
-    # #   - name: Set kubeconfig
-    # #     run: |
-    # #       echo "${{ secrets.KUBECONFIG_DATA }}" > kubeconfig
-    # #     shell: bash
-
-    #   - name: Apply Kubernetes manifests
-    #     env:
-    #       KUBECONFIG: ./kubeconfig
-    #     run: |
-    #       kubectl apply -f k8s/deployment.yaml
+      - name: Apply Kubernetes manifests
+        env:
+          KUBECONFIG: ./kubeconfig
+        run: |
+          kubectl apply -f k8s/deployment.yaml
