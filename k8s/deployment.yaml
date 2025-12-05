@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: react-sample-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: react-sample-app
+  template:
+    metadata:
+      labels:
+        app: react-sample-app
+    spec:
+      containers:
+        - name: react-sample-app
+          image: ghcr.io/<YOUR_GITHUB_USERNAME>/react-sample-app:latest
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: react-sample-app
+spec:
+  type: LoadBalancer
