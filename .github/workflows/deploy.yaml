@@ -36,7 +36,7 @@ jobs:
 
       - name: Replace image in deployment.yaml
         run: |
-          sed -i "s|image: .*|image: ${IMAGE}|g" k8s/deployment.yaml
+          yq -i ".spec.template.spec.containers[] |= (.image = \"${IMAGE}\")" k8s/deployment.yaml
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3

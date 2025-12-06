@@ -17,6 +17,8 @@ spec:
           image: ghcr.io/<YOUR_GITHUB_USERNAME>/react-sample-app:latest
           ports:
             - containerPort: 80
+      imagePullSecrets:
+        - name: ghcr-secret      
 ---
 apiVersion: v1
 kind: Service
@@ -24,3 +26,6 @@ metadata:
   name: react-sample-app
 spec:
   type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
